@@ -1,0 +1,72 @@
+
+if [ -e "$(echo ~)/.dockrc" ]
+  then
+    source "$(echo ~)/.dockrc"
+fi
+
+if [[ -n "$DOCKER_SSH" ]]
+  then
+	export PS1='🐳  $DOCKER_SSH # '
+	export DOCKER="ssh -q $DOCKER_SSH docker"
+	export DOCKER_TERM="ssh -q -t $DOCKER_SSH docker"
+  else
+    export PS1='🐳  local # '
+	export DOCKER=_runlocal
+	export DOCKER_TERM=_runlocal
+fi
+
+_runlocal() {
+	# need to use eval to mimic ssh's unescaping
+	eval "docker $(echo $@)"
+}
+
+export -f _runlocal
+
+_bash() {
+	$DOCKER_TERM exec -ti $1 bash
+}
+
+_mysql() {
+	$DOCKER_TERM exec -ti $1 mysql -uroot "$@"
+}
+
+_pull() {
+	$DOCKER pull docker.faqtory.nl:5000/$1 \; docker tag docker.faqtory.nl:5000/$1 $1
+}
+
+_push() {
+	$DOCKER tag $1 docker.faqtory.nl:5000/$1 \; docker push docker.faqtory.nl:5000/$1 
+}
+
+_stats() {
+	$DOCKER_TERM stats \$\(docker ps --format={{.Names}}\)
+}
+
+_sqlpro() {
+	echo "Starting tunnel in background..."
+	($DOCK_HOME/sequel\ Pro/sqlpro-tunnel.sh "$@" >/dev/null 2>&1 & disown)
+}
+
+alias bash=_bash
+alias commit='$DOCKER commit'
+alias exec='$DOCKER exec'
+alias history='$DOCKER history'
+alias images='$DOCKER images'
+alias inspect='$DOCKER inspect'
+alias kill='$DOCKER kill'
+alias logs='$DOCKER logs'
+alias mysql=_mysql
+alias network='$DOCKER network'
+alias ps='$DOCKER ps'
+alias pull='$DOCKER pull'
+alias port='$DOCKER port'
+alias push='$DOCKER push'
+alias restart='$DOCKER restart'
+alias rm='$DOCKER rm'
+alias rmi='$DOCKER rmi'
+alias run='$DOCKER_TERM run'
+alias sqlpro=_sqlpro
+alias start='$DOCKER start'
+alias stats=_stats
+alias stop='$DOCKER stop'
+alias volume='$DOCKER volume'
