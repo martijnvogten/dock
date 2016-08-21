@@ -66,6 +66,7 @@ alias rm='$DOCKER rm'
 alias rmi='$DOCKER rmi'
 alias run='$DOCKER_TERM run'
 alias sqlpro=_sqlpro
+alias ssh="ssh $DOCKER_SSH"
 alias start='$DOCKER start'
 alias stats=_stats
 alias stop='$DOCKER stop'
