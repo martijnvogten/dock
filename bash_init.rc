@@ -23,11 +23,11 @@ _runlocal() {
 export -f _runlocal
 
 _bash() {
-	$DOCKER_TERM exec -ti $1 bash
+	$DOCKER_TERM exec -ti $1 bash ${@:2}  
 }
 
 _mysql() {
-	$DOCKER_TERM exec -ti $1 mysql -uroot "$@"
+	$DOCKER_TERM exec -ti $1 mysql -uroot ${@:2}
 }
 
 _pull() {
@@ -47,8 +47,27 @@ _sqlpro() {
 	($DOCK_HOME/sequel\ Pro/sqlpro-tunnel.sh "$@" >/dev/null 2>&1 & disown)
 }
 
+_edit() {
+	TEMPFILE=$TMPDIR$(uuidgen | sed 's/-//g')
+	set -e
+	scp $DOCKER_SSH:"$1" $TEMPFILE
+	MTIME=$(stat  -f %m $TEMPFILE)
+	VSCODE_CWD="$PWD" open -n -b "com.microsoft.VSCode" --args "$TEMPFILE" &
+	while [[ true ]] 
+	do
+		sleep 1
+		if [[ MTIME -ne $(stat -f %m $TEMPFILE) ]]
+			then
+			echo Copying file contents back to $DOCKER_SSH:"$1"
+			scp $TEMPFILE $DOCKER_SSH:"$1"
+			MTIME=$(stat -f %m $TEMPFILE)
+		fi
+	done
+}
+
 alias bash=_bash
 alias commit='$DOCKER commit'
+alias edit=_edit
 alias exec='$DOCKER exec'
 alias history='$DOCKER history'
 alias images='$DOCKER images'
